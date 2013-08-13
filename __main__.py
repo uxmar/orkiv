@@ -10,6 +10,15 @@ from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.jid import InvalidJID
 from kivy.uix.button import Button
  
+
+class BuddyList(BoxLayout):
+    pass
+ 
+ 
+class OrkivRoot(BoxLayout):
+    pass
+
+
 class ConnectionModal(ModalView):
     def __init__(self, jabber_id, password):
         super(ConnectionModal, self).__init__(auto_dismiss=False,
