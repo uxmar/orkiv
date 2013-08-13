@@ -38,6 +38,8 @@ class AccountDetailsForm(AnchorLayout):
 
     def login(self):
         jabber_id = self.username_box.text + "@" + self.server_box.text
+        modal = ConnectionModal(jabber_id, self.password_box.text)
+        modal.open()
         password = self.password_box.text
      
         app = Orkiv.get_running_app()
