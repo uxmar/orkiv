@@ -3,8 +3,22 @@ from kivy.uix.boxlayout import BoxLayout
 from kivy.uix.anchorlayout import AnchorLayout
 from kivy.properties import ObjectProperty  # at top of file
 from sleekxmpp import ClientXMPP  # at the top of the file
+from kivy.uix.textinput import TextInput
+
+class AccountDetailsTextInput(TextInput):
+    next = ObjectProperty()
  
+    def _keyboard_on_key_down(self, window, keycode, text, modifiers):
+        if keycode[0] == 9:  # 9 is the keycode for 
+            self.next.focus = True
+        elif keycode[0] == 13:  # 13 is the keycode for 
+            self.parent.parent.parent.login()  # this is not future friendly
+        else:
+            super(AccountDetailsTextInput, self)._keyboard_on_key_down(
+                    window, keycode, text, modifiers)
+
 class AccountDetailsForm(AnchorLayout):
+
     server_box = ObjectProperty()
     username_box = ObjectProperty()
     password_box = ObjectProperty()
