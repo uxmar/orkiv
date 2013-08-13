@@ -6,7 +6,9 @@ from sleekxmpp import ClientXMPP  # at the top of the file
 from kivy.uix.textinput import TextInput
 from kivy.uix.modalview import ModalView  # At the top of the file
 from kivy.uix.label import Label
- 
+from sleekxmpp.exceptions import XMPPError
+from sleekxmpp.jid import InvalidJID
+from kivy.uix.button import Button
  
 class ConnectionModal(ModalView):
     def __init__(self, jabber_id, password):
@@ -16,6 +18,21 @@ class ConnectionModal(ModalView):
         self.add_widget(self.label)
         self.jabber_id = jabber_id
         self.password = password
+        self.on_open = self.connect_to_jabber
+
+    def connect_to_jabber(self):
+        app = Orkiv.get_running_app()
+        try:
+            app.connect_to_jabber(self.jabber_id, self.password)
+            self.label.text = "\n".join(app.xmpp.client_roster.keys())
+        except (XMPPError, InvalidJID):
+            self.label.text = "Sorry, couldn't connect, check your credentials"
+            button = Button(text="Try Again")
+            button.size_hint = (1.0, None)
+            button.height = "40dp"
+            button.bind(on_press=self.dismiss)
+            self.add_widget(button)
+            app.disconnect_xmpp()
 
 
 class AccountDetailsTextInput(TextInput):
@@ -40,26 +57,34 @@ class AccountDetailsForm(AnchorLayout):
         jabber_id = self.username_box.text + "@" + self.server_box.text
         modal = ConnectionModal(jabber_id, self.password_box.text)
         modal.open()
-        password = self.password_box.text
      
-        app = Orkiv.get_running_app()
-        app.connect_to_jabber(jabber_id, password)
-        print(app.xmpp.client_roster.keys())
-        app.xmpp.disconnect()
-
-        print(self.server_box.text)
-        print(self.username_box.text)
-        print(self.password_box.text)
-
-        print("Click the goddamn button")
-
 class Orkiv(App):
+
+
+    def __init__(self):
+        super(Orkiv, self).__init__()
+        self.xmpp = None
+
     def connect_to_jabber(self, jabber_id, password):
         self.xmpp = ClientXMPP(jabber_id, password)
-        self.xmpp.connect()
+        #~ self.xmpp.connect()
+
+        self.xmpp.reconnect_max_attempts = 1
+        connected = self.xmpp.connect()
+        if not connected:
+            raise XMPPError("unable to connect")
+
         self.xmpp.process()
         self.xmpp.send_presence()
         self.xmpp.get_roster()
+
+    def disconnect_xmpp(self):
+        if self.xmpp and self.xmpp.state.ensure("connected"):
+            self.xmpp.abort()
+        self.xmpp = None
+
+    def on_stop(self):
+        self.disconnect_xmpp()
 
 Orkiv().run()
 
