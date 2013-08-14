@@ -9,14 +9,23 @@ from kivy.uix.label import Label
 from sleekxmpp.exceptions import XMPPError
 from sleekxmpp.jid import InvalidJID
 from kivy.uix.button import Button
- 
+from kivy.properties import StringProperty
+
 
 class BuddyList(BoxLayout):
-    pass
+    list_view = ObjectProperty()
+ 
+    def __init__(self):
+        super(BuddyList, self).__init__()
+        self.app = Orkiv.get_running_app()
+        self.list_view.adapter.data = sorted(self.app.xmpp.client_roster.keys())
  
  
 class OrkivRoot(BoxLayout):
-    pass
+    def show_buddy_list(self):
+        self.clear_widgets()
+        self.buddy_list = BuddyList()
+        self.add_widget(self.buddy_list)
 
 
 class ConnectionModal(ModalView):
@@ -29,11 +38,13 @@ class ConnectionModal(ModalView):
         self.password = password
         self.on_open = self.connect_to_jabber
 
+        
     def connect_to_jabber(self):
         app = Orkiv.get_running_app()
         try:
             app.connect_to_jabber(self.jabber_id, self.password)
-            self.label.text = "\n".join(app.xmpp.client_roster.keys())
+            app.root.show_buddy_list()
+            self.dismiss()
         except (XMPPError, InvalidJID):
             self.label.text = "Sorry, couldn't connect, check your credentials"
             button = Button(text="Try Again")
