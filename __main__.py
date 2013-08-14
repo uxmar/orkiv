@@ -11,6 +11,8 @@ from sleekxmpp.jid import InvalidJID
 from kivy.uix.button import Button
 from kivy.properties import StringProperty
 
+class BuddyListItem(BoxLayout):
+    text = StringProperty()
 
 class BuddyList(BoxLayout):
     list_view = ObjectProperty()
